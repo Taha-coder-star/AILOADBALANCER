@@ -29,11 +29,14 @@ lb.on('algorithm-changed', ({ algorithm }) => {
 });
 
 app.get('/metrics', (req, res) => {
+  const throughput = generator.getThroughput();
+  lb.recordThroughput(throughput);
   res.json({
     servers: servers.map(s => s.toJSON()),
-    throughput: generator.getThroughput(),
+    throughput,
     algorithm: currentAlgorithm,
     running: generator.running,
+    spikeDetected: lb.getSpikeDetected(),
     timestamp: Date.now(),
   });
 });
@@ -61,13 +64,15 @@ app.post('/stop', (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(3001, () => {
-  console.log('Simulator running on http://localhost:3001');
-});
+if (require.main === module) {
+  generator.start();
+  setInterval(() => {
+    const loads = servers.map(s => `${s.id}: ${Math.round(s.load)}%`).join(' | ');
+    console.log(`[${new Date().toISOString()}] ${loads} | throughput: ${generator.getThroughput()} req/s | algo: ${currentAlgorithm}`);
+  }, 2000);
+  app.listen(3001, () => {
+    console.log('Simulator running on http://localhost:3001');
+  });
+}
 
-generator.start();
-
-setInterval(() => {
-  const loads = servers.map(s => `${s.id}: ${Math.round(s.load)}%`).join(' | ');
-  console.log(`[${new Date().toISOString()}] ${loads} | throughput: ${generator.getThroughput()} req/s | algo: ${currentAlgorithm}`);
-}, 2000);
+module.exports = { app };

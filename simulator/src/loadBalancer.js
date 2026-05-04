@@ -27,6 +27,16 @@ class LoadBalancer extends EventEmitter {
     this.algorithm = getAlgorithm(name);
     this.emit('algorithm-changed', { algorithm: name });
   }
+
+  recordThroughput(rate) {
+    if (typeof this.algorithm.recordThroughput === 'function') {
+      this.algorithm.recordThroughput(rate);
+    }
+  }
+
+  getSpikeDetected() {
+    return this.algorithm.spikeDetected === true;
+  }
 }
 
 module.exports = LoadBalancer;

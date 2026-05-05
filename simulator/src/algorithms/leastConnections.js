@@ -1,9 +1,9 @@
 class LeastConnectionsStrategy {
   select(servers) {
     if (servers.length === 0) throw new Error('No servers available');
-    return servers.reduce((min, s) =>
-      s.activeConnections < min.activeConnections ? s : min
-    );
+    const minConns = Math.min(...servers.map(s => s.activeConnections));
+    const tied = servers.filter(s => s.activeConnections === minConns);
+    return tied[Math.floor(Math.random() * tied.length)];
   }
 }
 

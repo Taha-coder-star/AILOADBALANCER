@@ -41,8 +41,11 @@ class RequestGenerator {
 
     setTimeout(() => {
       if (!this.running) return;
-      this.requestsInWindow++;
-      this.loadBalancer.route().catch(() => {});
+      this.loadBalancer.route().then(() => {
+        this.requestsInWindow++;
+      }).catch(err => {
+        console.error('[GENERATOR] Route failed:', err.message);
+      });
       this._scheduleNext();
     }, delay);
   }
